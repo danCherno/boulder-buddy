@@ -1,11 +1,8 @@
 from rest_framework import serializers
-# from .models import Sample
+from .models import Boulder
 
 
-"""
-class SampleSerializer(serializers.ModelSerializer):
+class BoulderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Sample
-        fields = ['id', 'title']
-"""
-
+        model = Boulder
+        fields = ['id', 'positions', 'summary']

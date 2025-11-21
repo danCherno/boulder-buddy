@@ -6,5 +6,4 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
-        from article.scheduler import start_scheduler
-        start_scheduler()
+        exit
