@@ -1,10 +1,9 @@
 from rest_framework import generics, permissions
-# from .models import Sample
-# from .serializers import SampleSerializer
+from .models import Boulder
+from .serializers import BoulderSerializer
 
-"""
-class sampleView(generics.ListAPIView):
+
+class BoulderView(generics.ListCreateAPIView):
     permission_classes = [permissions.AllowAny]
-    queryset = Sample.objects.all().order_by('-published_date')
-    serializer_class = SampleSerializer
-"""
+    queryset = Boulder.objects.all().order_by('-id')
+    serializer_class = BoulderSerializer
