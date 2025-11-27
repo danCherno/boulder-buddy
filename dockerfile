@@ -1,66 +1,46 @@
-FROM python:3.9.25-alpine3.22
+FROM python:3.9-slim
 LABEL maintainer="Cherno"
 
-# ============================================
-# Python Environment Configuration
-# ============================================
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/py/bin:$PATH"
 
-# ============================================
-# Working Directory Setup
-# ============================================
 WORKDIR /app
 EXPOSE 8000
 
-# ============================================
-# Copy Requirements
-# ============================================
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
 
-# ============================================
-# Build Arguments
-# ============================================
 ARG DEV=false
 
 # ============================================
-# System Dependencies & Python Packages
+# System dependencies
 # ============================================
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
-    # Install PostgreSQL client
-    apk add --update --no-cache postgresql-client && \
-    # Install temporary build dependencies
-    apk add --update --no-cache --virtual .tmp-build-deps \
-        build-base \
-        postgresql-dev \
-        musl-dev && \
-    # Install production dependencies
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        libpq-dev \
+        libgl1 \
+        libglib2.0-0 \
+        && \
+    # Install dependencies
     /py/bin/pip install -r /tmp/requirements.txt && \
-    # Install development dependencies if DEV=true
     if [ "$DEV" = "true" ]; then \
         /py/bin/pip install -r /tmp/requirements.dev.txt; \
     fi && \
     # Cleanup
-    rm -rf /tmp && \
-    apk del .tmp-build-deps
+    apt-get purge -y gcc g++ && \
+    apt-get autoremove -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp
 
 # ============================================
-# Create Non-Root User
+# Non-root user
 # ============================================
-RUN adduser \
-    --disabled-password \
-    --no-create-home \
-    django-user
+RUN useradd --no-create-home django-user
 
-# ============================================
-# Copy Application Code
-# ============================================
 COPY ./app /app
 
-# ============================================
-# Switch to Non-Root User
-# ============================================
 USER django-user
