@@ -1,22 +1,11 @@
+import cv2
+import numpy as np
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-import tempfile
 from .models import Boulder
 from .serializers import BoulderSerializer
-
-
-def detect_holds(image_path):
-    """
-    TODO: replace with real YOLO inference.
-    For now, returns dummy data.
-    """
-    return {
-        "holds": [
-            {"x": 120, "y": 300},
-            {"x": 240, "y": 180},
-        ]
-    }
+from .process_route import detect_holds
 
 
 class BoulderView(generics.RetrieveAPIView):
@@ -31,17 +20,17 @@ class BoulderProcessView(generics.GenericAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
-        if "image" not in request.FILES:
+        img = request.FILES.get("image")
+        if not img:
             return Response({"error": "No image uploaded"}, status=400)
 
-        image = request.FILES["image"]
+        file_bytes = np.frombuffer(img.read(), np.uint8)
+        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp:
-            for chunk in image.chunks():
-                temp.write(chunk)
-            temp_path = temp.name
+        if img is None:
+            return Response({"error": "Invalid image"}, status=400)
 
-        positions = detect_holds(temp_path)
+        positions = detect_holds(img)
 
         boulder = Boulder.objects.create(
             positions=positions,
@@ -50,10 +39,10 @@ class BoulderProcessView(generics.GenericAPIView):
 
         serializer = BoulderSerializer(boulder)
 
-        return Response({
-            "message": "Image processed successfully",
-            "boulder": serializer.data
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {"message": "Image processed successfully", "boulder": serializer.data}, # noqa: 501
+            status=status.HTTP_201_CREATED
+        )
 
 
 class BoulderSummarizeView(generics.GenericAPIView):

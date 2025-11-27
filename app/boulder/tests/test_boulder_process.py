@@ -1,3 +1,5 @@
+import numpy as np
+import cv2
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
@@ -15,13 +17,17 @@ class BoulderProcessViewTests(APITestCase):
     def test_process_image_success(self, mock_detect):
         mock_detect.return_value = {
             "positions": [
-                {"x": 100, "y": 200}
+                {"x": 100, "y": 200, "area": 1500}
             ]
         }
 
+        dummy_img = np.zeros((10, 10, 3), dtype=np.uint8)
+        _, buffer = cv2.imencode(".jpg", dummy_img)
+        image_bytes = buffer.tobytes()
+
         image = SimpleUploadedFile(
             name='test.jpg',
-            content=b'\x47\x49\x46',
+            content=image_bytes,
             content_type='image/jpeg'
         )
 
