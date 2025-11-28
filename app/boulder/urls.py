@@ -5,7 +5,7 @@ from .views import BoulderView, BoulderProcessView, BoulderSummarizeView
 """
 POST   /boulder/process/          - Upload image → detect holds
 GET    /boulder/<id>/             - Retrieve stored boulder info
-POST   /boulder/<id>/summarize/   - Run LLM summarization
+GET   /boulder/<id>/summarize/   - Run LLM summarization
 """
 urlpatterns = [
     path('<int:id>/', BoulderView.as_view(), name='boulder-detail'),
