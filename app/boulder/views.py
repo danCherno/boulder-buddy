@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Boulder
 from .serializers import BoulderSerializer
 from .process_route import detect_holds
+from .analyse_route import generate_route_tips
 
 
 class BoulderView(generics.RetrieveAPIView):
@@ -19,7 +21,7 @@ class BoulderProcessView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         img = request.FILES.get("image")
         if not img:
             return Response({"error": "No image uploaded"}, status=400)
@@ -46,4 +48,32 @@ class BoulderProcessView(generics.GenericAPIView):
 
 
 class BoulderSummarizeView(generics.GenericAPIView):
-    exit
+    queryset = Boulder.objects.all()
+    serializer_class = BoulderSerializer
+
+    def get(self, request, *args, **kwargs):
+        boulder_id = kwargs.get("id")
+        boulder = get_object_or_404(Boulder, id=boulder_id)
+
+        if boulder.summary and boulder.summary.strip():
+            return Response(
+                {
+                    "message": "Summary already exists",
+                    "boulder": self.serializer_class(boulder).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        coords = boulder.positions
+        boulder.summary = generate_route_tips(coords)
+        boulder.save()
+
+        serializer = self.serializer_class(boulder)
+
+        return Response(
+            {
+                "message": "Summary generated successfully",
+                "boulder": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
