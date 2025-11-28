@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from sklearn.cluster import KMeans
 
 
 def detect_holds(img):
@@ -13,9 +12,9 @@ def detect_holds(img):
 
     lower = np.array([20, 100, 100])
     upper = np.array([30, 255, 255])
-    mask =  cv2.inRange(hsv, lower, upper)
+    mask = cv2.inRange(hsv, lower, upper)
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # noqa: 501
     positions = []
 
     for contour in contours:
