@@ -6,5 +6,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('api/auth/user/', CurrentUserView.as_view(), name='current-user'),
-    path('api/', include('boulder.urls')),
+    path('api/boulder/', include('boulder.urls')),
 ]

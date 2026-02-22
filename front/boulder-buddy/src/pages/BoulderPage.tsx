@@ -1,7 +1,4 @@
-<<<<<<< Updated upstream
 // src/pages/BoulderPage.tsx
-=======
->>>>>>> Stashed changes
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { getBoulder, summarizeBoulder } from "../lib/api";
@@ -108,30 +105,19 @@ function PixelHoldsOverlay({
             : undefined}
         />
       ))}
-<<<<<<< Updated upstream
-      {/* Optionally show a tip? */}
-=======
->>>>>>> Stashed changes
     </svg>
   );
 }
 
 async function commitHolds(boulderId: string, holds: HoldPx[]) {
   const API_BASE = import.meta.env.VITE_API_BASE as string;
-<<<<<<< Updated upstream
-  const response = await fetch(`${API_BASE}/boulder/${boulderId}/`, {
-=======
   const response = await fetch(`${API_BASE}/api/boulder/${boulderId}/`, {
->>>>>>> Stashed changes
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       positions: holds.map((h) => [h.x, h.y])
     }),
-<<<<<<< Updated upstream
-=======
     credentials: 'include',
->>>>>>> Stashed changes
   });
   if (!response.ok) {
     let data;
@@ -158,15 +144,8 @@ export default function BoulderPage() {
   const [commitBusy, setCommitBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-<<<<<<< Updated upstream
-  // Editable holds, initial from boulder?.positions, but updated as user removes/adds dots.
   const [editableHolds, setEditableHolds] = useState<HoldPx[] | null>(null);
 
-  // Reset editable holds whenever we get a new boulder (id change or refetch)
-=======
-  const [editableHolds, setEditableHolds] = useState<HoldPx[] | null>(null);
-
->>>>>>> Stashed changes
   useEffect(() => {
     setEditableHolds(null);
   }, [id, boulder?.positions]);
@@ -176,12 +155,6 @@ export default function BoulderPage() {
     return parsePositions(boulder?.positions);
   }, [editableHolds, boulder?.positions]);
 
-<<<<<<< Updated upstream
-  // Actually update boulder.positions only if you want to sync with backend.
-  // For now: only update client-side (just in editableHolds state).
-
-=======
->>>>>>> Stashed changes
   const handleDeleteHold = useCallback((index: number) => {
     setEditableHolds((prev) => {
       const prevHolds = prev !== null ? prev : parsePositions(boulder?.positions);
@@ -195,10 +168,6 @@ export default function BoulderPage() {
   const handleAddHold = useCallback((pos: HoldPx) => {
     setEditableHolds((prev) => {
       const prevHolds = prev !== null ? prev : parsePositions(boulder?.positions);
-<<<<<<< Updated upstream
-      // Optionally avoid adding duplicates within a pixel or two
-=======
->>>>>>> Stashed changes
       if (prevHolds.some(h => Math.abs(h.x - pos.x) < 2 && Math.abs(h.y - pos.y) < 2)) return prevHolds;
       return [...prevHolds, pos];
     });
@@ -217,10 +186,6 @@ export default function BoulderPage() {
   }
 
   async function onSummarize() {
-<<<<<<< Updated upstream
-    // Only allow summarization if not in edit mode
-=======
->>>>>>> Stashed changes
     if (editableHolds !== null) return;
     setSumBusy(true);
     setErr(null);
@@ -251,10 +216,6 @@ export default function BoulderPage() {
 
   useEffect(() => {
     refresh();
-<<<<<<< Updated upstream
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-=======
->>>>>>> Stashed changes
   }, [id]);
 
   return (
@@ -264,11 +225,7 @@ export default function BoulderPage() {
         <button
           onClick={refresh}
           disabled={busy}
-<<<<<<< Updated upstream
-          style={{ border: "none", background: "transparent", color: "#444", padding: 8 }}
-=======
           style={{ border: "none", background: "transparent", color: "#444", padding: 8, cursor: busy ? "not-allowed" : "pointer" }}
->>>>>>> Stashed changes
         >
           {busy ? "…" : "Refresh"}
         </button>
@@ -297,13 +254,7 @@ export default function BoulderPage() {
               <b>click a dot to delete</b>
             </span>
             <span style={{ marginLeft: 8 }}>
-<<<<<<< Updated upstream
-              <b>
-                {"click image to add new dot"}
-              </b>
-=======
               <b>click image to add new dot</b>
->>>>>>> Stashed changes
             </span>
             <button
               style={{
@@ -316,11 +267,7 @@ export default function BoulderPage() {
                 textDecoration: "underline",
                 padding: 0
               }}
-<<<<<<< Updated upstream
-              onClick={() => { setEditableHolds(null); }}
-=======
               onClick={() => setEditableHolds(null)}
->>>>>>> Stashed changes
               disabled={commitBusy}
             >
               Reset
@@ -333,11 +280,7 @@ export default function BoulderPage() {
                 background: commitBusy ? "#ddd" : "#cfd",
                 border: "1px solid #042",
                 borderRadius: 6,
-<<<<<<< Updated upstream
-                cursor: commitBusy ? "default" : "pointer",
-=======
                 cursor: commitBusy ? "not-allowed" : "pointer",
->>>>>>> Stashed changes
                 textDecoration: "none",
                 padding: "4px 12px",
                 fontWeight: 600,
@@ -362,11 +305,7 @@ export default function BoulderPage() {
                 textDecoration: "underline",
                 padding: 0
               }}
-<<<<<<< Updated upstream
-              onClick={() => { setEditableHolds(holds); }}
-=======
               onClick={() => setEditableHolds(holds)}
->>>>>>> Stashed changes
             >
               Edit dots
             </button>
@@ -376,43 +315,6 @@ export default function BoulderPage() {
 
       <div style={{ marginTop: 12 }}>
         {previewUrl ? (
-<<<<<<< Updated upstream
-          <>
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                aspectRatio: "3 / 4",
-                borderRadius: 14,
-                overflow: "hidden",
-                border: "1px solid #eee",
-                background: "#f4f4f4",
-              }}
-            >
-              <img
-                ref={imgRef}
-                src={previewUrl}
-                alt="uploaded"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                // If we want visual feedback on addMode, e.g. crosshair cursor on img
-                // Not strictly necessary as SVG overlays the image
-              />
-              {holds.length > 0 || (editableHolds && editableHolds.length === 0) ? (
-                <PixelHoldsOverlay
-                  imgRef={imgRef}
-                  holds={holds}
-                  radiusPx={2}
-                  onDelete={editableHolds !== null ? handleDeleteHold : undefined}
-                  onAddHold={editableHolds !== null ? handleAddHold : undefined}
-                />
-              ) : null}
-            </div>
-
-            <div style={{ marginTop: 8, color: "#666", fontSize: 13 }}>
-              This image is a local preview (backend doesn't store images yet).
-            </div>
-          </>
-=======
           <div
             style={{
               position: "relative",
@@ -439,7 +341,6 @@ export default function BoulderPage() {
               />
             ) : null}
           </div>
->>>>>>> Stashed changes
         ) : (
           <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 12, color: "#666" }}>
             No image preview available. Upload again to view overlay on the same device/session.
@@ -461,11 +362,7 @@ export default function BoulderPage() {
           cursor: sumBusy || editableHolds !== null ? "not-allowed" : "pointer",
         }}
       >
-<<<<<<< Updated upstream
-        {sumBusy ? "Generating..." : boulder?.summary?.trim() ? "Re-generate summary (not available in beta)" : "Generate summary"}
-=======
         {sumBusy ? "Generating..." : boulder?.summary?.trim() ? "Re-generate summary" : "Generate summary"}
->>>>>>> Stashed changes
         {editableHolds !== null && (
           <span style={{ color: "#b00020", marginLeft: 8, fontSize: 13 }}>
             (Finish editing to generate summary)

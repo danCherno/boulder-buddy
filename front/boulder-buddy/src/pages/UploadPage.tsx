@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { processImage } from "../lib/api";
-<<<<<<< Updated upstream
-import { ClickablePreview } from "../components/clickablePreview";
-=======
 import { ClickablePreview } from "../components/ClickablePreview";
->>>>>>> Stashed changes
 
 export default function UploadPage() {
   const nav = useNavigate();
@@ -24,11 +20,7 @@ export default function UploadPage() {
       const boulder = await processImage(file, pick);
       nav(`/boulder/${boulder.id}`, { state: { previewUrl } });
     } catch (e: any) {
-<<<<<<< Updated upstream
-      setErr(e?.message ?? "Failed");
-=======
       setErr(e?.message ?? "Failed to process image");
->>>>>>> Stashed changes
     } finally {
       setBusy(false);
     }
@@ -52,13 +44,7 @@ export default function UploadPage() {
       {previewUrl && (
         <ClickablePreview
           previewUrl={previewUrl}
-<<<<<<< Updated upstream
-          onPick={(p) => {
-            setPick(p)
-          }}
-=======
           onPick={(p) => setPick(p)}
->>>>>>> Stashed changes
         />
       )}
 
@@ -74,10 +60,7 @@ export default function UploadPage() {
           fontWeight: 700,
           background: !file || !pick || busy ? "#ddd" : "#111",
           color: !file || !pick || busy ? "#666" : "#fff",
-<<<<<<< Updated upstream
-=======
           cursor: !file || !pick || busy ? "not-allowed" : "pointer",
->>>>>>> Stashed changes
         }}
       >
         {busy ? "Processing..." : "Process image"}
@@ -90,8 +73,4 @@ export default function UploadPage() {
       )}
     </div>
   );
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
