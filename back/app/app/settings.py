@@ -9,7 +9,7 @@ env = environ.Env(DEBUG=(bool, False))
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if DEBUG else [])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # URL & WSGI
 ROOT_URLCONF = "app.urls"
@@ -59,7 +59,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "app.middleware.CsrfExemptMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
@@ -99,7 +98,7 @@ AUTHENTICATION_BACKENDS = [
 # Django Rest Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "app.authentication.CsrfExemptSessionAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.UserRateThrottle",
@@ -120,7 +119,7 @@ CSRF_TRUSTED_ORIGINS = env.list(
 )
 
 # Django Allauth
-ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 SOCIALACCOUNT_ADAPTER = "app.adapter.CustomSocialAccountAdapter"
 LOGIN_REDIRECT_URL = env("LOGIN_REDIRECT_URL", default="https://boulder-buddy.com/")
@@ -128,7 +127,7 @@ LOGOUT_REDIRECT_URL = env("LOGOUT_REDIRECT_URL", default="https://boulder-buddy.
 
 # Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = True
 
 # Session & Cookies
 SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", default=".boulder-buddy.com")

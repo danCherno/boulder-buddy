@@ -2,37 +2,6 @@ import cv2
 import numpy as np
 
 
-def detect_holds(
-    img,
-    hsv=(25, 170, 170),
-    min_area=5
-    ):
-    """
-    Detect climbing holds assuming they share a dominant color.
-    Returns list of coords + size.
-    hue(h): color | saturation(s), brightness(v): intesnsity
-    """
-    hsv_lower, hsv_upper = hsv_range_from_sample(hsv)
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    mask = cv2.inRange(hsv, hsv_lower, hsv_upper)
-
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # noqa: 501
-    holds = []
-
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area < min_area:
-            continue
-        M = cv2.moments(contour)
-        if M['m00'] == 0:
-            continue
-        cx = int(M['m10'] / M['m00'])
-        cy = int(M['m01'] / M['m00'])
-        holds.append((cx, cy))
-
-    return holds
-
 def hsv_range_from_sample(hsv, dh=10, ds=60, dv=60):
     h, s, v = map(int, hsv)
     if not (0 <= h <= 179 and 0 <= s <= 255 and 0 <= v <= 255):
@@ -55,18 +24,18 @@ def hsv_range_from_sample(hsv, dh=10, ds=60, dv=60):
     return [((h0, s0, v0), (h1, s1, v1))]
 
 
+def hsv_from_position(img, x: int, y: int):
+    h, w = img.shape[:2]
+    if not (0 <= x < w and 0 <= y < h):
+        return None
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    return tuple(int(v) for v in hsv_img[y, x])
+
+
 def detect_holds(img, hsv=(25, 170, 170), min_area=5):
     """
-    Extract HSV color at a pixel position (x, y) in the given image.
-
-    Args:
-        img: Input image (assumed BGR, as from cv2.imread).
-        x: X coordinate (column index).
-        y: Y coordinate (row index).
-
-    Returns:
-        Tuple of (h, s, v) values at the specified pixel.
-        Returns None if the position is out of bounds.
+    Detect climbing holds assuming they share a dominant color.
+    Returns list of (cx, cy) coords.
     """
     ranges = hsv_range_from_sample(hsv)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

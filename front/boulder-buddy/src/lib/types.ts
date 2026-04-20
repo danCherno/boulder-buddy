@@ -5,7 +5,7 @@ export type Hold = {
 
 export type Boulder = {
   id: number | string;
-  positions: Hold[][] | any;
+  positions: [number, number][];
   summary: string;
   image?: string;
   created_by?: number;

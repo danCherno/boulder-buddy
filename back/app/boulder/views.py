@@ -19,8 +19,10 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 class BoulderView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BoulderSerializer
-    queryset = Boulder.objects.all()
     lookup_field = 'id'
+
+    def get_queryset(self):
+        return Boulder.objects.filter(created_by=self.request.user)
 
     def post(self, request, id):
         boulder = get_object_or_404(Boulder, id=id, created_by=request.user)
@@ -28,6 +30,13 @@ class BoulderView(generics.RetrieveAPIView):
 
         if positions is None:
             return Response({"error": "No positions provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(positions, list) or not all(
+            isinstance(p, (list, tuple)) and len(p) == 2
+            and all(isinstance(c, (int, float)) for c in p)
+            for p in positions
+        ):
+            return Response({"error": "Invalid positions format"}, status=status.HTTP_400_BAD_REQUEST)
 
         boulder.positions = positions
         boulder.save()
@@ -45,20 +54,16 @@ class BoulderProcessView(generics.GenericAPIView):
         if not img_file:
             return Response({"error": "No image uploaded"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate file size
         if img_file.size > MAX_FILE_SIZE:
             return Response({"error": "File too large (max 10MB)"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate file extension
         ext = os.path.splitext(img_file.name)[1].lower()
         if ext not in ALLOWED_EXTENSIONS:
             return Response({"error": "Invalid file type. Allowed: jpg, jpeg, png, webp"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate MIME type
         if img_file.content_type not in ALLOWED_MIME_TYPES:
             return Response({"error": "Invalid file type"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Read image for processing
         file_bytes = np.frombuffer(img_file.read(), np.uint8)
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
@@ -79,14 +84,12 @@ class BoulderProcessView(generics.GenericAPIView):
 
         holds = detect_holds(img, color)
 
-        # Create boulder with image and user
         boulder = Boulder.objects.create(
             positions=holds,
             summary="",
             created_by=request.user
         )
 
-        # Save the original uploaded image
         img_file.seek(0)
         boulder.image.save(f'boulder_{boulder.id}.jpg', ContentFile(img_file.read()), save=True)
 
@@ -117,7 +120,10 @@ class BoulderSummarizeView(generics.GenericAPIView):
             )
 
         coords = boulder.positions
-        boulder.summary = generate_route_tips(coords)
+        try:
+            boulder.summary = generate_route_tips(coords)
+        except RuntimeError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
         boulder.save()
 
         serializer = self.serializer_class(boulder)

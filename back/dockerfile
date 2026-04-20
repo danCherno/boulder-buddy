@@ -22,8 +22,7 @@ EXPOSE 8000
 
 CMD ["sh", "-c", "\
   mkdir -p /app/media && \
-  python manage.py makemigrations --noinput && \
   python manage.py migrate --noinput && \
   python manage.py collectstatic --noinput && \
-  gunicorn app.wsgi:application --bind 0.0.0.0:${PORT} --workers 1 --threads 2 --timeout 180 --access-logfile - --error-logfile - --log-level debug\
+  gunicorn app.wsgi:application --bind 0.0.0.0:${PORT} --workers 4 --timeout 180 --access-logfile - --error-logfile -\
 "]

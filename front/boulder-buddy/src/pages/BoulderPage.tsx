@@ -1,20 +1,24 @@
-// src/pages/BoulderPage.tsx
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { getBoulder, summarizeBoulder } from "../lib/api";
+import { getBoulder, summarizeBoulder, updateBoulderPositions } from "../lib/api";
 import type { Boulder } from "../lib/types";
 
 type HoldPx = { x: number; y: number };
 
-function parsePositions(positions: any): HoldPx[] {
+type LocationState = { previewUrl?: string };
+
+function parsePositions(positions: unknown): HoldPx[] {
   if (!Array.isArray(positions)) return [];
   return positions
     .map((p) => {
       if (Array.isArray(p) && p.length >= 2) return { x: Number(p[0]), y: Number(p[1]) };
-      if (p && typeof p === "object" && "x" in p && "y" in p) return { x: Number((p as any).x), y: Number((p as any).y) };
+      if (p && typeof p === "object" && "x" in p && "y" in p) {
+        const obj = p as { x: unknown; y: unknown };
+        return { x: Number(obj.x), y: Number(obj.y) };
+      }
       return null;
     })
-    .filter(Boolean) as HoldPx[];
+    .filter((h): h is HoldPx => h !== null);
 }
 
 function PixelHoldsOverlay({
@@ -85,7 +89,7 @@ function PixelHoldsOverlay({
     >
       {holds.map((h, i) => (
         <circle
-          key={i}
+          key={`${h.x}-${h.y}-${i}`}
           cx={h.x * sx}
           cy={h.y * sy}
           r={r}
@@ -109,32 +113,10 @@ function PixelHoldsOverlay({
   );
 }
 
-async function commitHolds(boulderId: string, holds: HoldPx[]) {
-  const API_BASE = import.meta.env.VITE_API_BASE as string;
-  const response = await fetch(`${API_BASE}/api/boulder/${boulderId}/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      positions: holds.map((h) => [h.x, h.y])
-    }),
-    credentials: 'include',
-  });
-  if (!response.ok) {
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      data = { error: response.statusText };
-    }
-    throw new Error(data?.error || "Failed to save holds");
-  }
-  return await response.json();
-}
-
 export default function BoulderPage() {
   const { id = "" } = useParams();
   const loc = useLocation();
-  const previewUrl = (loc.state as any)?.previewUrl as string | undefined;
+  const previewUrl = (loc.state as LocationState)?.previewUrl;
 
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -178,8 +160,8 @@ export default function BoulderPage() {
     setErr(null);
     try {
       setBoulder(await getBoulder(id));
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to load boulder");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Failed to load boulder");
     } finally {
       setBusy(false);
     }
@@ -192,8 +174,8 @@ export default function BoulderPage() {
     try {
       setBoulder(await summarizeBoulder(id));
       setEditableHolds(null);
-    } catch (e: any) {
-      setErr(e?.message ?? "Summarize failed");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Summarize failed");
     } finally {
       setSumBusy(false);
     }
@@ -204,11 +186,11 @@ export default function BoulderPage() {
     setCommitBusy(true);
     setErr(null);
     try {
-      const newData = await commitHolds(boulder.id.toString(), editableHolds);
-      setBoulder(newData);
+      const positions: [number, number][] = editableHolds.map((h) => [h.x, h.y]);
+      setBoulder(await updateBoulderPositions(boulder.id.toString(), positions));
       setEditableHolds(null);
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to save holds");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Failed to save holds");
     } finally {
       setCommitBusy(false);
     }

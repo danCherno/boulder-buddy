@@ -1,5 +1,8 @@
+import logging
 from groq import Groq
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def generate_route_tips(coords):
@@ -28,14 +31,16 @@ def generate_route_tips(coords):
             Keep it short and helpful.
         """
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "You are an expert climbing coach."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.6,
-    )
-
-    print(response)
-    return response.choices[0].message.content.strip()
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are an expert climbing coach."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.6,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as exc:
+        logger.error("Groq API error: %s", exc)
+        raise RuntimeError("Failed to generate route tips") from exc
