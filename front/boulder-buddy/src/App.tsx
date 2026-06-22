@@ -4,7 +4,6 @@ import UploadPage from "./pages/UploadPage";
 import BoulderPage from "./pages/BoulderPage";
 import Auth from "./components/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
 
 function InfoPopup({ onClose }: { onClose: () => void }) {
   return (
@@ -138,9 +137,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  return <AppContent />;
 }

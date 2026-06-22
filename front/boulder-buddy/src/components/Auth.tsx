@@ -1,9 +1,11 @@
-import { useAuth } from '../contexts/AuthContext';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 const API_URL = import.meta.env.VITE_API_BASE as string;
 
 export default function Auth() {
-  const { user, loading } = useAuth();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const loading = useSelector((state: RootState) => state.auth.loading);
 
   const handleLogin = () => {
     window.location.href = `${API_URL}/accounts/google/login/`;

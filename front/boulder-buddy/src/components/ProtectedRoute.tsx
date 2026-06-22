@@ -1,9 +1,11 @@
-import { useAuth } from '../contexts/AuthContext';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 const API_URL = import.meta.env.VITE_API_BASE as string;
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const loading = useSelector((state: RootState) => state.auth.loading);
 
   const handleLogin = () => {
     window.location.href = `${API_URL}/accounts/google/login/`;
@@ -11,11 +13,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '50vh' 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh'
       }}>
         <div style={{ fontSize: 18, color: '#666' }}>Loading...</div>
       </div>
@@ -24,11 +26,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (!user) {
     return (
-      <div style={{ 
-        display: 'flex', 
+      <div style={{
+        display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '50vh',
         gap: 16
       }}>
